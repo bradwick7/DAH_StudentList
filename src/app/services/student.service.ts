@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Student } from '../models/student';
+import { map } from 'rxjs/operators';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -7,70 +9,44 @@ import { Student } from '../models/student';
 export class StudentService {
   private students: Student[];
 
-  constructor() {
-    this.students = [
-      {
-        controlNumber: '18401121',
-        name: 'Bradley Addiel González Flores',
-        curp: 'GOFB000121HNENLR',
-        age: 22,
-        nip: 804,
-        email: 'bradgonzalezfl@ittepic.edu.mx',
-        career: 'ISC',
-        photo: 'https://picsum.photos/300/300',
-      },
-      {
-        controlNumber: '18407382',
-        name: 'Juan Axel Jacobo Covarrubias',
-        curp: 'JAJC000241HNENLR',
-        age: 22,
-        nip: 124,
-        email: 'juanaxel25@ittepic.edu.mx',
-        career: 'ISC',
-        photo: 'https://picsum.photos/300/300',
-      },
-      {
-        controlNumber: '18402492',
-        name: 'Pedro Avila Bermudez',
-        curp: 'PAB000359HNENLR',
-        age: 22,
-        nip: 359,
-        email: 'pedrol359@ittepic.edu.mx',
-        career: 'ISC',
-        photo: 'https://picsum.photos/300/300',
-      },
-    ];
+  constructor(private firestore: AngularFirestore) {
+    this.students = [];
   }
 
-  public getStudents(): Student[] {
-    return this.students;
+  public getStudents() {
+    return this.firestore
+      .collection('students')
+      .snapshotChanges()
+      .pipe(
+        map((actions) => {
+          return actions.map((a) => {
+            const data = a.payload.doc.data() as Student;
+            const id = a.payload.doc.id;
+            return { id, ...data };
+          });
+        })
+      );
   }
 
-  public removeStudent(index: number): Student[] {
-    this.students.splice(index, 1);
-    return this.students;
+  public removeStudent(id: string) {
+    this.firestore.collection('students').doc(id).delete();
   }
 
-  public newStudent(student: Student): Student[] {
-    this.students.push(student);
-    this.getStudents();
-    return this.students;
+  public newStudent(student: Student) {
+    this.firestore.collection('students').add(student);
   }
 
-  public updateStudent(updatedStudent: Student): Student[] {
-    this.students = this.students.map((student) =>
-      student.controlNumber !== updatedStudent.controlNumber
-        ? student
-        : updatedStudent
-    );
-    return this.students;
+  public getStudentByControlNumber(id: string) {
+    let result = this.firestore.collection('students').doc(id).valueChanges();
+    return result;
   }
 
-  public getStudentByControlNumber(cn: String): Student {
-    let item: Student;
-    item = this.students.find((student) => {
-      return student.controlNumber === cn;
-    });
-    return item;
+  public getStudentById(id: string) {
+    let result = this.firestore.collection('students').doc(id).valueChanges();
+    return result;
+  }
+
+  public updateStudent(student: Student, id: string) {
+    this.firestore.doc('students/' + id).update(student);
   }
 }

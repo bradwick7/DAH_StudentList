@@ -3,6 +3,8 @@ import { Student } from '../models/student';
 import { StudentService } from '../services/student.service';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { AlertController } from '@ionic/angular';
+import { Router } from '@angular/router';
+import { v4 as uuid } from 'uuid';
 
 @Component({
   selector: 'app-new-student',
@@ -19,7 +21,8 @@ export class NewStudentPage implements OnInit {
   constructor(
     private studentService: StudentService,
     private formBuilder: FormBuilder,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -182,6 +185,7 @@ export class NewStudentPage implements OnInit {
       this.studentService.newStudent(this.newStudent);
       this.myForm.reset();
       this.presentAlert();
+      this.back();
     }
   }
 
@@ -190,7 +194,10 @@ export class NewStudentPage implements OnInit {
       header: 'Se guardó el nuevo estudiante',
       buttons: ['OK'],
     });
-
     await alert.present();
+  }
+
+  back(): void {
+    this.router.navigate(['..']);
   }
 }

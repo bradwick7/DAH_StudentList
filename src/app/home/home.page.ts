@@ -17,13 +17,17 @@ export class HomePage {
     private alertController: AlertController,
     private router: Router
   ) {
-    this.students = this.studentService.getStudents();
+    this.studentService.getStudents().subscribe((res) => {
+      this.students = res;
+      console.log(this.students);
+    });
   }
 
-  public async removeStudent(pos: number) {
+  public async removeStudent(id: string) {
     const alert = await this.alertController.create({
       header: 'Confirmación',
       subHeader: '¿Estás seguro que deseas eliminar?',
+      message: 'Esto es una confirmación',
       buttons: [
         {
           text: 'Cancelar',
@@ -34,7 +38,7 @@ export class HomePage {
           text: 'Aceptar',
           role: 'confirm',
           handler: () => {
-            this.students = this.studentService.removeStudent(pos);
+            this.studentService.removeStudent(id);
           },
         },
       ],
@@ -42,9 +46,9 @@ export class HomePage {
     await alert.present();
   }
 
-  public getStudentByControlNumber(cn: String) {
+  public getStudentById(id: string) {
     this.router.navigate(['/view-student'], {
-      queryParams: { controlNumber: cn },
+      queryParams: { id: id },
     });
   }
 
@@ -56,9 +60,9 @@ export class HomePage {
     this.router.navigate(['/login']);
   }
 
-  public goToUpdateStudent(cn: String) {
+  public goToUpdateStudent(id: string) {
     this.router.navigate(['/update-student'], {
-      queryParams: { controlNumber: cn },
+      queryParams: { id: id },
     });
   }
 }

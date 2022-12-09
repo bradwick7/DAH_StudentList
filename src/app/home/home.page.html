@@ -20,7 +20,7 @@
           <ion-item>
             <ion-label>{{student.name}}</ion-label>
             <ion-button
-              (click)="goToUpdateStudent(student.controlNumber)"
+              (click)="goToUpdateStudent(student.id)"
               slot="end"
               size="default"
               color="primary"
@@ -28,7 +28,7 @@
               <ion-icon name="color-wand"></ion-icon>
             </ion-button>
             <ion-button
-              (click)="getStudentByControlNumber(student.controlNumber)"
+              (click)="getStudentById(student.id)"
               slot="end"
               size="default"
               color="primary"
@@ -36,7 +36,7 @@
               <ion-icon name="search"></ion-icon>
             </ion-button>
           </ion-item>
-          <ion-item-options side="end" (ionSwipe)="removeStudent(i)">
+          <ion-item-options side="end" (ionSwipe)="removeStudent(student.id)">
             <ion-item-option expandable color="danger">
               <ion-icon name="trash-outline"></ion-icon>
             </ion-item-option>

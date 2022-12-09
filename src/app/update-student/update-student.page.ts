@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Student } from '../models/student';
 import { StudentService } from '../services/student.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { AlertController } from '@ionic/angular';
 
@@ -12,6 +12,7 @@ import { AlertController } from '@ionic/angular';
 })
 export class UpdateStudentPage implements OnInit {
   public student: Student;
+  public id: string;
   public updatedStudent: Student;
   public myForm: FormGroup;
   public validationMessages: Object;
@@ -21,14 +22,28 @@ export class UpdateStudentPage implements OnInit {
     private studentService: StudentService,
     private activatedRouteService: ActivatedRoute,
     private formBuilder: FormBuilder,
-    private alertController: AlertController
-  ) {}
+    private alertController: AlertController,
+    private router: Router
+  ) {
+    this.student = {
+      controlNumber: '',
+      age: 0,
+      career: '',
+      curp: '',
+      email: '',
+      name: '',
+      nip: 0,
+      photo: '',
+    };
+  }
 
   ngOnInit() {
     this.activatedRouteService.queryParams.subscribe((params) => {
-      this.student = this.studentService.getStudentByControlNumber(
-        params.controlNumber
-      );
+      this.id = params.id;
+      this.studentService.getStudentById(params.id).subscribe((item) => {
+        this.student = item as Student;
+        console.log(this.student);
+      });
     });
 
     this.myForm = this.formBuilder.group({
@@ -36,7 +51,6 @@ export class UpdateStudentPage implements OnInit {
         this.student.controlNumber,
         Validators.compose([
           Validators.required,
-          Validators.minLength(7),
           Validators.maxLength(8),
           Validators.pattern('^[0-9]+$'),
         ]),
@@ -47,7 +61,7 @@ export class UpdateStudentPage implements OnInit {
         Validators.compose([
           Validators.required,
           Validators.pattern(
-            '[A-Z]{4}[0-9]{6}[HM]{1}[A-Z]{2}[BCDFGHJKLMNPQRSTVWXYZ]{3}([A-Z]{2})?([0-9]{2})?'
+            '^[A-Z]{1}[AEIOU]{1}[A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|1[0-9]|2[0-9]|3[0-1])[HM]{1}(AS|BC|BS|CC|CS|CH|CL|CM|DF|DG|GT|GR|HG|JC|MC|MN|MS|NT|NL|OC|PL|QT|QR|SP|SL|SR|TC|TS|TL|VZ|YN|ZS|NE)[B-DF-HJ-NP-TV-Z]{3}[0-9A-Z]{1}[0-9]{1}$'
           ),
         ]),
       ],
@@ -75,15 +89,7 @@ export class UpdateStudentPage implements OnInit {
         ]),
       ],
       career: [this.student.career, Validators.compose([Validators.required])],
-      photo: [
-        this.student.photo,
-        Validators.compose([
-          Validators.required,
-          Validators.pattern(
-            '^((http(s?)?)://)?([wW]{3}.)?[a-zA-Z0-9-.]+.[a-zA-Z]{2,}(.[a-zA-Z]{2,})?(/[0-9]{3,})*$'
-          ),
-        ]),
-      ],
+      photo: [this.student.photo, Validators.compose([Validators.required])],
     });
 
     this.validationMessages = {
@@ -162,24 +168,11 @@ export class UpdateStudentPage implements OnInit {
           type: 'required',
           message: 'La URL de la foto es requerida',
         },
-        {
-          type: 'pattern',
-          message: 'La URL ingresada no es válida',
-        },
       ],
     };
-
-    this.myForm.get('name').markAsDirty();
-    this.myForm.get('curp').markAsDirty();
-    this.myForm.get('age').markAsDirty();
-    this.myForm.get('email').markAsDirty();
-    this.myForm.get('career').markAsDirty();
-    this.myForm.get('photo').markAsDirty();
   }
 
-  public guardarEstudiante(): void {
-    console.log(this.myForm.valid);
-
+  public guardarEstudiante() {
     if (this.myForm.valid) {
       this.updatedStudent = {
         controlNumber: this.myForm.get('controlNumber').value,
@@ -191,27 +184,24 @@ export class UpdateStudentPage implements OnInit {
         career: this.myForm.get('career').value,
         photo: this.myForm.get('photo').value,
       };
-      this.studentService.updateStudent(this.updatedStudent);
-      this.presentAlert();
+      this.studentService.updateStudent(this.updatedStudent, this.id);
+      this.presentAlert('Se actualizaron los datos del estudiante');
+      this.back();
     } else {
-      this.presentAlert2();
+      this.presentAlert('Verifica que los campos estén correctos');
     }
   }
 
-  async presentAlert() {
+  async presentAlert(msg: string) {
     const alert = await this.alertController.create({
-      header: 'Se actualizaron los datos del estudiante',
+      header: msg,
       buttons: ['OK'],
     });
 
     await alert.present();
   }
-  async presentAlert2() {
-    const alert = await this.alertController.create({
-      header: 'Verifica que los campos estén correctos',
-      buttons: ['OK'],
-    });
 
-    await alert.present();
+  back(): void {
+    this.router.navigate(['..']);
   }
 }
